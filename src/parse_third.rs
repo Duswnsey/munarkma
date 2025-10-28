@@ -2,14 +2,15 @@ use std::mem::discriminant;
 
 use regex::Regex;
 
-
 use crate::{
   parser_first::slices,
   renderobjs::{
     Altitude, Bold, CellAttribute, DelBar, DelTidal, Direction, Itelic, Lower, RenderObject, Table,
     TableCell, TableRow, UnderLine, Upper,
   },
-  structs::{Compiler, Expect, Objects},
+  structs::{
+    BOLD, Compiler, DELBAR, DELTITAL, Expect, ITELIC, LOWER, Objects, TABLE, UNDERLINE, UPPER,
+  },
 };
 
 pub fn parse_third(compiler: &mut Compiler, close: Expect) -> RenderObject {
@@ -75,43 +76,43 @@ fn namumarker(
       if !parsing_close(compiler, close, result, namumarkresult) {
         return false;
       }
-      if compiler.peak("'''") {
+      if compiler.peak(&BOLD) {
         compiler.index += 3;
         compiler
           .expected
           .push((Expect::Bold, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::Bold));
-      } else if compiler.peak("''") {
+      } else if compiler.peak(&ITELIC) {
         compiler.index += 2;
         compiler
           .expected
           .push((Expect::Itelic, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::Itelic));
-      } else if compiler.peak("~~") {
+      } else if compiler.peak(&DELTITAL) {
         compiler.index += 2;
         compiler
           .expected
           .push((Expect::DelTidal, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::DelTidal));
-      } else if compiler.peak("--") {
+      } else if compiler.peak(&DELBAR) {
         compiler.index += 2;
         compiler
           .expected
           .push((Expect::DelBar, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::DelBar));
-      } else if compiler.peak("__") {
+      } else if compiler.peak(&UNDERLINE) {
         compiler.index += 2;
         compiler
           .expected
           .push((Expect::UnderLine, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::UnderLine));
-      } else if compiler.peak("^^") {
+      } else if compiler.peak(&UPPER) {
         compiler.index += 2;
         compiler
           .expected
           .push((Expect::Upper, compiler.index, false));
         thisparsing = Some(parse_third(compiler, Expect::Upper));
-      } else if compiler.peak(",,") {
+      } else if compiler.peak(&LOWER) {
         compiler.index += 2;
         compiler
           .expected
@@ -134,7 +135,7 @@ fn namumarker(
             let table_cells = get_table_cells(tr);
             tb.table_row.push(table_cells);
           } else {
-            panic!("??????????");
+            panic!("");
           }
         }
       } else {
@@ -195,7 +196,7 @@ fn namumarker(
                     return false;
                   }
                 }
-                _ => panic!(), 
+                _ => panic!(),
               }
             } else {
               namumarkresult.extend(tuple.1);
@@ -224,11 +225,13 @@ fn namumarker(
       true
     }
     None => {
-      if compiler.expected.is_empty() {
-        compiler.array = namumarkresult.to_vec();
-        false
+      if *close == Expect::None {
+        compiler.array = namumarkresult.clone();
+        *result = RenderObject::NopNopNop;
+        return false;
       } else {
-        *result = RenderObject::Nop(namumarkresult.to_vec());
+        *result = RenderObject::Nop(a_whole_my_vec(close, namumarkresult));
+        compiler.expected.pop();
         false
       }
     }
@@ -240,7 +243,7 @@ fn parsing_close(
   result: &mut RenderObject,
   namumarkresult: &mut Vec<Objects>,
 ) -> bool {
-  if compiler.peak("||")
+  if compiler.peak(&TABLE)
     && (compiler.index + 2 == compiler.array.len()
       || (compiler
         .get(compiler.index + 2)
@@ -279,7 +282,7 @@ fn parsing_close(
       }
       true
     }
-  } else if compiler.peak("'''") {
+  } else if compiler.peak(&BOLD) {
     compiler.index += 3;
     if *close == Expect::Bold {
       compiler.expected.pop();
@@ -317,7 +320,7 @@ fn parsing_close(
       compiler.index -= 3;
       true
     }
-  } else if compiler.peak("''") {
+  } else if compiler.peak(&ITELIC) {
     compiler.index += 2;
     if *close == Expect::Itelic {
       compiler.expected.pop();
@@ -356,11 +359,11 @@ fn parsing_close(
       compiler.index -= 2;
       true
     }
-  } else if compiler.peak("~~") {
+  } else if compiler.peak(&DELTITAL) {
     compiler.index += 2;
     if *close == Expect::DelTidal {
       compiler.expected.pop();
-      if let RenderObject::DelTidal(dt ) = result {
+      if let RenderObject::DelTidal(dt) = result {
         dt.content = namumarkresult.to_vec();
       } else {
         panic!("지름신불타네")
@@ -377,7 +380,7 @@ fn parsing_close(
       compiler.index -= 2;
       true
     }
-  } else if compiler.peak("--") {
+  } else if compiler.peak(&DELBAR) {
     compiler.index += 2;
     if *close == Expect::DelBar {
       compiler.expected.pop();
@@ -398,7 +401,7 @@ fn parsing_close(
       compiler.index -= 2;
       true
     }
-  } else if compiler.peak("__") {
+  } else if compiler.peak(&UNDERLINE) {
     compiler.index += 2;
     if *close == Expect::UnderLine {
       compiler.expected.pop();
@@ -419,7 +422,7 @@ fn parsing_close(
       compiler.index -= 2;
       true
     }
-  } else if compiler.peak(",,") {
+  } else if compiler.peak(&LOWER) {
     compiler.index += 2;
     if *close == Expect::Lower {
       compiler.expected.pop();
@@ -440,7 +443,7 @@ fn parsing_close(
       compiler.index -= 2;
       true
     }
-  } else if compiler.peak("^^") {
+  } else if compiler.peak(&UPPER) {
     compiler.index += 3;
     if *close == Expect::Upper {
       compiler.expected.pop();
@@ -506,7 +509,8 @@ fn a_whole_my_vec(close: &Expect, namumarkresult: &mut Vec<Objects>) -> Vec<Obje
       let mut rst = slices("\n||".to_string());
       rst.extend_from_slice(namumarkresult);
       rst
-    }
+    },
+    Expect::None => namumarkresult.clone(),
     _ => {
       panic!("issue github: {:?}", close)
     }
@@ -544,7 +548,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
   fn peak(array: &Vec<Objects>, str: &str, index: usize) -> bool {
     for (idx, ch) in str.chars().enumerate() {
       if let Some(Objects::Char(cha)) = array.get(idx + index) {
-        if ch.to_lowercase().to_string() != *cha.to_lowercase().to_string() {
+        if ch.to_ascii_lowercase() != cha.to_ascii_lowercase() {
           return false;
         }
       } else {
@@ -569,7 +573,6 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(array, ">", index + idx) {
           return Some(the_number);
         } else {
-          println!("{}", cha);
           return None;
         }
       } else {
@@ -593,7 +596,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
       }
       i += 1;
     }
-    
+
     let color_pattern = r"#(?:[0-9a-f]{3}|[0-9a-f]{6})|aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgrey|darkgreen|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|grey|green|greenyellow|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgrey|lightgreen|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|rebeccapurple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen";
 
     let full_pattern = format!(r"(?i)^({cp})(?:,({cp}))?$", cp = color_pattern);
@@ -720,7 +723,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<tablebordercolor=", idx) {
+        } else if peak(&content, "<tablebordercolor=", idx) {
           idx += 18;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -736,7 +739,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<table bordercolor=", idx) {
+        } else if peak(&content, "<table bordercolor=", idx) {
           idx += 19;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -752,7 +755,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<color=", idx) {
+        } else if peak(&content, "<color=", idx) {
           idx += 7;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -768,7 +771,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<tablecolor=", idx) {
+        } else if peak(&content, "<tablecolor=", idx) {
           idx += 12;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -784,7 +787,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<table color=", idx) {
+        } else if peak(&content, "<table color=", idx) {
           idx += 13;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -800,7 +803,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<colbgcolor=", idx) {
+        } else if peak(&content, "<colbgcolor=", idx) {
           idx += 12;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -816,7 +819,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<rowbgcolor=", idx) {
+        } else if peak(&content, "<rowbgcolor=", idx) {
           idx += 12;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -832,7 +835,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<colcolor=", idx) {
+        } else if peak(&content, "<colcolor=", idx) {
           idx += 10;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -848,8 +851,8 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<rowcolor=", idx) {
-          idx +=10;
+        } else if peak(&content, "<rowcolor=", idx) {
+          idx += 10;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
             if sec_color.is_some() {
@@ -864,7 +867,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<tablebgcolor=", idx) {
+        } else if peak(&content, "<tablebgcolor=", idx) {
           idx += 14;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();
@@ -880,7 +883,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
           } else {
             *content = content[rollback..content.len()].to_vec();
           }
-        }else if peak(&content, "<table bgcolor=", idx) {
+        } else if peak(&content, "<table bgcolor=", idx) {
           idx += 15;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
             idx += string.len();

@@ -6,7 +6,12 @@ use crate::{
     Color, Heading, Link, LinkType, List, ListLine, Minus, NamuTriple, NamumarkMacro, Plus, Quote,
     QuoteLine, RenderObject,
   },
-  structs::{Compiler, Expect, ListType, NamuMacroType, Objects},
+  structs::{
+    AGE, CLEARFIX, Compiler, DATE, DATETIME, DDAY, EQ, EQNEWLINE, Expect, FOLDING, FOOTNOTE, IF,
+    INCLUDE, KAKAOTV, LINK_CLOSE, LINK_OPEN, ListType, MACRO_CLOSE, MACROARG_CLOSE, MINUS, NAVERTV,
+    NEWLINE, NICOVIDEO, NamuMacroType, Objects, PAGECOUNT, PLUS, REFOPEN, RUBY, SPACE,
+    TABLEOFCONTENTS, TRIPLE_CLOSE, TRIPLE_OPEN, VIMEO, WIKI, YOUTUBE, 깎쭈, 뀨, 몪차,
+  },
 };
 
 pub(crate) fn parse_first(compiler: &mut Compiler, close: Expect) -> RenderObject {
@@ -28,7 +33,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
       loop {
         if let Some(Objects::Char(ch)) = compiler.get(compiler.index) {
           let ch = ch.to_owned();
-          if compiler.peak("]]") {
+          if compiler.peak(&LINK_CLOSE) {
             compiler.index += 2;
             compiler.expected.pop();
             *result = RenderObject::Link(Link {
@@ -99,7 +104,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
       let mut name = String::new();
       let index = compiler.index;
       loop {
-        if compiler.peak(" ") {
+        if compiler.peak(&SPACE) {
           compiler.index += 1;
           if name.is_empty() {
             *result = RenderObject::Reference(crate::renderobjs::Reference {
@@ -113,7 +118,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
             });
           }
           return true;
-        } else if compiler.peak("]") {
+        } else if compiler.peak(&MACRO_CLOSE) {
           if name.is_empty() {
             *result = RenderObject::Reference(crate::renderobjs::Reference {
               name: None,
@@ -125,6 +130,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
               content: None,
             });
           }
+          compiler.expected.pop();
           return false;
         } else if compiler.current().is_none() {
           compiler.index = index;
@@ -149,11 +155,11 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
           compiler.expected.pop();
           return false;
         }
-        if compiler.peak("{{{") {
+        if compiler.peak(&TRIPLE_OPEN) {
           compiler.index += 3;
           string.push_str("{{{");
           triplecount += 1;
-        } else if compiler.peak("}}}") {
+        } else if compiler.peak(&TRIPLE_CLOSE) {
           compiler.index += 3;
           triplecount -= 1;
           if triplecount == 0 {
@@ -178,7 +184,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
       loop {
         if let Some(Objects::Char(ch)) = compiler.get(compiler.index) {
           let ch = ch.to_owned();
-          if compiler.peak(")]") {
+          if compiler.peak(&MACROARG_CLOSE) {
             compiler.index += 2;
             break;
           }
@@ -211,7 +217,7 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
         "dday" => NamuMacroType::DDay,
         "pagecount" => NamuMacroType::PageCount,
         "ruby" => NamuMacroType::Ruby,
-        _ => NamuMacroType::Custom,
+        _ => {panic!()}
       };
       *result = RenderObject::NamumarkMacro(NamumarkMacro {
         macroname,
@@ -320,14 +326,11 @@ fn namumarker(
       return bool;
     }
     let mut thisparsing: Option<RenderObject> = None;
-    if compiler.peak("[[") {
+    if compiler.peak(&LINK_OPEN) {
       compiler.expected.push((Expect::Link, compiler.index, true));
       compiler.index += 2;
       thisparsing = Some(parse_first(compiler, Expect::Link));
-    } else if compiler.peak("{{{#!wiki ")
-      || compiler.peak("{{{#!if ")
-      || compiler.peak("{{{#!folding ")
-    {
+    } else if compiler.peak(&WIKI) || compiler.peak(&IF) || compiler.peak(&FOLDING) {
       compiler
         .expected
         .push((Expect::TripleWithNamuMark, compiler.index, true));
@@ -339,7 +342,7 @@ fn namumarker(
         .expected
         .push((Expect::Color, compiler.index, false));
       thisparsing = Some(parse_first(compiler, Expect::Color));
-    } else if compiler.peak("{{{+") && {
+    } else if compiler.peak(&PLUS) && {
       if let Objects::Char(ch) = compiler.get(compiler.index + 4).unwrap() {
         ch.to_string().parse().is_ok_and(|num| matches!(num, 0..=5))
       } else {
@@ -351,7 +354,7 @@ fn namumarker(
         .expected
         .push((Expect::Plus, compiler.index, false));
       thisparsing = Some(parse_first(compiler, Expect::Plus));
-    } else if compiler.peak("{{{-") && {
+    } else if compiler.peak(&MINUS) && {
       if let Objects::Char(ch) = compiler.get(compiler.index + 4).unwrap() {
         ch.to_string().parse().is_ok_and(|num| matches!(num, 0..=5))
       } else {
@@ -363,19 +366,19 @@ fn namumarker(
         .expected
         .push((Expect::Minus, compiler.index, false));
       thisparsing = Some(parse_first(compiler, Expect::Minus));
-    } else if compiler.peak("{{{") {
+    } else if compiler.peak(&TRIPLE_OPEN) {
       compiler.index += 3;
       compiler
         .expected
         .push((Expect::JustTriple, compiler.index, false));
       thisparsing = Some(parse_first(compiler, Expect::JustTriple));
-    } else if compiler.peak("[*") {
+    } else if compiler.peak(&REFOPEN) {
       compiler.index += 2;
       compiler
         .expected
         .push((Expect::Reference, compiler.index, true));
       thisparsing = Some(parse_first(compiler, Expect::Reference));
-    } else if compiler.peak("[date]") {
+    } else if compiler.peak(&DATE) {
       compiler.index += 6;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -385,7 +388,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[datetime]") {
+    } else if compiler.peak(&DATETIME) {
       compiler.index += 10;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -395,7 +398,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[목차]") {
+    } else if compiler.peak(&몪차) {
       compiler.index += 4;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -405,7 +408,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[tableofcontents]") {
+    } else if compiler.peak(&TABLEOFCONTENTS) {
       compiler.index += 17;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -415,7 +418,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[각주]") {
+    } else if compiler.peak(&깎쭈) {
       compiler.index += 4;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -425,7 +428,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[footnote]") {
+    } else if compiler.peak(&FOOTNOTE) {
       compiler.index += 10;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -435,7 +438,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[br]") {
+    } else if compiler.peak(&뀨) {
       compiler.index += 4;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -445,7 +448,7 @@ fn namumarker(
         },
       )));
       return true;
-    } else if compiler.peak("[clearfix]") {
+    } else if compiler.peak(&CLEARFIX) {
       compiler.index += 10;
       namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
         NamumarkMacro {
@@ -455,26 +458,16 @@ fn namumarker(
         },
       )));
       return true;
-    } else if let Some(s) = compiler.peak_macro() {
-      namumarkresult.push(Objects::RenderObject(RenderObject::NamumarkMacro(
-        NamumarkMacro {
-          macroname: s,
-          macroarg: None,
-          macrotype: NamuMacroType::Custom,
-        },
-      )));
-      return true;
-    } else if compiler.peak("[youtube(")
-      || compiler.peak("[nicovideo(")
-      || compiler.peak("[vimeo(")
-      || compiler.peak("[navertv(")
-      || compiler.peak("[kakaotv(")
-      || compiler.peak("[include(")
-      || compiler.peak("[age(")
-      || compiler.peak("[dday(")
-      || compiler.peak("[pagecount(")
-      || compiler.peak("[ruby(")
-      || compiler.peak_macro_arg()
+    } else if compiler.peak(&YOUTUBE)
+      || compiler.peak(&NICOVIDEO)
+      || compiler.peak(&VIMEO)
+      || compiler.peak(&NAVERTV)
+      || compiler.peak(&KAKAOTV)
+      || compiler.peak(&INCLUDE)
+      || compiler.peak(&AGE)
+      || compiler.peak(&DDAY)
+      || compiler.peak(&PAGECOUNT)
+      || compiler.peak(&RUBY)
     {
       compiler.index += 1;
       compiler
@@ -617,13 +610,15 @@ fn namumarker(
     } else if let (true, how) = compiler.peak_repeat_line('>', None) {
       if how <= 8 {
         compiler.index += how;
-        thisparsing = Some(parse_first(compiler, Expect::Quote(how)));
         compiler
-          .expected
-          .push((Expect::List(0), compiler.index, false));
+        .expected
+        .push((Expect::Quote(0), compiler.index, false));
+        thisparsing = Some(parse_first(compiler, Expect::Quote(how)));
+
       } else {
         compiler.index += 1;
         namumarkresult.push(Objects::Char('>'));
+        return true;
       }
       if !matches!(
         namumarkresult.last(),
@@ -689,7 +684,7 @@ fn namumarker(
             match tuple.0 {
               Expect::Link => {
                 if let RenderObject::Link(link) = result {
-                  link.show.extend(tuple.1.to_vec());
+                  link.show.extend(tuple.1);
                 } else {
                   panic!()
                 }
@@ -697,7 +692,7 @@ fn namumarker(
               }
               Expect::Color => {
                 if let RenderObject::Color(cl) = result {
-                  cl.content.extend(tuple.1.to_vec());
+                  cl.content.extend(tuple.1);
                   return false;
                 } else {
                   panic!()
@@ -705,7 +700,7 @@ fn namumarker(
               }
               Expect::Plus => {
                 if let RenderObject::Plus(pl) = result {
-                  pl.content.extend(tuple.1.to_vec());
+                  pl.content.extend(tuple.1);
                   return false;
                 } else {
                   panic!()
@@ -713,7 +708,7 @@ fn namumarker(
               }
               Expect::Minus => {
                 if let RenderObject::Minus(mx) = result {
-                  mx.content.extend(tuple.1.to_vec());
+                  mx.content.extend(tuple.1);
                   return false;
                 } else {
                   panic!()
@@ -742,13 +737,21 @@ fn namumarker(
               }
               Expect::Heading(_) => {
                 if let RenderObject::Heading(hd) = result {
-                  hd.content.extend(namumarkresult.to_vec());
+                  hd.content.extend(namumarkresult.clone());
+                  return false;
+                } else {
+                  panic!()
+                }
+              },
+              Expect::Reference => {
+                if let RenderObject::Reference(rf) = result {
+                  rf.content.as_mut().unwrap().extend(namumarkresult.clone());
                   return false;
                 } else {
                   panic!()
                 }
               }
-              _ => panic!(),
+              _ => panic!("{:?}", tuple),
             }
           } else {
             namumarkresult.extend(tuple.1);
@@ -782,14 +785,14 @@ fn namumarker(
       true
     };
   } else if *close == Expect::None {
-    compiler.array = namumarkresult.to_vec();
+    compiler.array = namumarkresult.clone();
     *result = RenderObject::NopNopNop;
     return false;
   } else {
     if let Expect::List(how) = close {
       *result = RenderObject::ListLine(ListLine {
         lvl: *how,
-        content: namumarkresult.to_vec(),
+        content: namumarkresult.clone(),
       });
       return false;
     }
@@ -811,7 +814,7 @@ fn namumarker(
     if let Expect::Quote(how) = close {
       *result = RenderObject::QuoteLine(QuoteLine {
         lvl: *how,
-        content: namumarkresult.to_vec(),
+        content: namumarkresult.clone(),
       });
       return false;
     }
@@ -874,8 +877,10 @@ fn a_whole_my_vec(
       let mut resultt = slices("{{{#".to_string());
       if let RenderObject::Color(cl) = result {
         resultt.extend_from_slice(&slices(cl.first.clone()));
-        resultt.push(Objects::Char(','));
-        resultt.extend_from_slice(&slices(cl.second.clone().unwrap()));
+        if cl.second.is_some() {
+          resultt.push(Objects::Char(','));
+          resultt.extend_from_slice(&slices(cl.second.clone().unwrap()));
+        }
         resultt.push(Objects::Char(' '));
       } else {
         panic!();
@@ -931,7 +936,7 @@ fn a_whole_my_vec(
       if let RenderObject::ListLine(ll) = result {
         vec![Objects::RenderObject(RenderObject::ListLine(ListLine {
           lvl: ll.lvl,
-          content: namumarkresult.to_vec(),
+          content: namumarkresult.clone(),
         }))]
       } else {
         panic!()
@@ -941,7 +946,7 @@ fn a_whole_my_vec(
       if let RenderObject::QuoteLine(ql) = result {
         vec![Objects::RenderObject(RenderObject::QuoteLine(QuoteLine {
           lvl: ql.lvl,
-          content: namumarkresult.to_vec(),
+          content: namumarkresult.clone(),
         }))]
       } else {
         panic!()
@@ -949,10 +954,10 @@ fn a_whole_my_vec(
     }
     Expect::Heading(how) => {
       let mut rt = slices("=".repeat(*how));
-      rt.extend(namumarkresult.to_vec());
+      rt.extend(namumarkresult.clone());
       rt
     }
-    Expect::None => namumarkresult.to_vec(),
+    Expect::None => namumarkresult.clone(),
     _ => {
       panic!("이거나 먹어라: {:?}", close);
     }
@@ -971,7 +976,7 @@ fn parsing_close(
   result: &mut RenderObject,
   namumarkresult: &mut Vec<Objects>,
 ) -> Option<bool> {
-  if compiler.peak("]") {
+  if compiler.peak(&MACRO_CLOSE) {
     if *close == Expect::Reference {
       compiler.index += 1;
       compiler.expected.pop();
@@ -990,7 +995,7 @@ fn parsing_close(
         ));
         return Some(false);
       }
-    } else if compiler.peak("]]") {
+    } else if compiler.peak(&LINK_CLOSE) {
       compiler.index += 2;
       if *close == Expect::Link {
         compiler.expected.pop();
@@ -1013,16 +1018,15 @@ fn parsing_close(
         return Some(true);
       }
     }
-  } else if compiler.peak("\n") {
+  } else if compiler.peak(&NEWLINE) {
     if matches!(close, Expect::List(_)) {
       compiler.index += 1;
       compiler.expected.pop();
       if let RenderObject::ListLine(ll) = result {
-        ll.content = namumarkresult.to_vec();
+        ll.content = namumarkresult.clone();
       }
       return Some(false);
-    }
-    if let Some((Expect::List(lt), _, _)) = compiler
+    } else if let Some((Expect::List(lt), _, _)) = compiler
       .expected
       .clone()
       .iter()
@@ -1044,10 +1048,10 @@ fn parsing_close(
       }
     }
     if matches!(close, Expect::Quote(_)) {
-      compiler.index += 1;
       compiler.expected.pop();
+      compiler.index += 1;
       if let RenderObject::QuoteLine(ql) = result {
-        ql.content = namumarkresult.to_vec();
+        ql.content = namumarkresult.clone();
       }
       return Some(false);
     } else if let Some((Expect::Quote(qt), _, _)) = compiler
@@ -1086,10 +1090,10 @@ fn parsing_close(
       return Some(true);
     }
     return None;
-  } else if compiler.peak("=\n")
-    || (compiler.peak("=") && compiler.index + 1 == compiler.array.len())
+  } else if compiler.peak(&EQNEWLINE)
+    || (compiler.peak(&EQ) && compiler.index + 1 == compiler.array.len())
   {
-    compiler.index += 2;
+    compiler.index += 1;
     if matches!(close, Expect::Heading(_)) {
       last_dance(result, namumarkresult);
       compiler.expected.pop();
@@ -1114,15 +1118,14 @@ fn parsing_close(
     } else {
       namumarkresult.push(Objects::Char('='));
       namumarkresult.push(Objects::Char('\n'));
-      return Some(true); 
-
+      return Some(true);
     }
-  } else if compiler.peak("}}}") {
+  } else if compiler.peak(&TRIPLE_CLOSE) {
     compiler.index += 3;
     if *close == Expect::TripleWithNamuMark {
       compiler.expected.pop();
       if let RenderObject::NamuTriple(nt) = result {
-        nt.content = Some(namumarkresult.to_vec());
+        nt.content = Some(namumarkresult.clone());
         return Some(false);
       }
     }
@@ -1136,7 +1139,7 @@ fn parsing_close(
       } else {
         panic!();
       }
-      pl.content = namumarkresult.to_vec();
+      pl.content = namumarkresult.clone();
       compiler.expected.pop();
       return Some(false);
     }
@@ -1150,7 +1153,7 @@ fn parsing_close(
       } else {
         panic!();
       }
-      pl.content = namumarkresult.to_vec();
+      pl.content = namumarkresult.clone();
       compiler.expected.pop();
       return Some(false);
     }
@@ -1211,7 +1214,7 @@ fn parsing_close(
 fn last_dance(result: &mut RenderObject, namumarkresult: &Vec<Objects>) {
   match result {
     RenderObject::Link(link) => {
-      link.show = namumarkresult.to_vec();
+      link.show = namumarkresult.clone();
       if link.to.starts_with("파일:") {
         link.link_type = LinkType::File
       }
@@ -1220,7 +1223,7 @@ fn last_dance(result: &mut RenderObject, namumarkresult: &Vec<Objects>) {
       }
     }
     RenderObject::Heading(hd) => {
-      hd.content = namumarkresult.to_vec();
+      hd.content = namumarkresult.clone();
       let mut index = 1;
       let mut reversed = namumarkresult.to_owned();
       reversed.reverse();

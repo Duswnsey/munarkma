@@ -1,20 +1,18 @@
-
-
 use crate::structs::{Expect, ListType, NamuMacroType, Objects};
 #[derive(Debug, PartialEq, Clone)]
 
 pub enum RenderObject {
   AddBefore(Vec<Objects>),
   Link(Link),
-  
+
   Nop(Vec<Objects>),
   LastRollBack,
-  
+
   NopNopNop,
-  
-  EarlyParse((Expect, Vec<Objects>)),
-  
-  EarlyParseRollBack(Expect),
+
+   EarlyParse((Expect, Vec<Objects>)),
+
+    EarlyParseRollBack(Expect),
   NamuTriple(NamuTriple),
   Literal(String),
   NamumarkMacro(NamumarkMacro),
@@ -39,7 +37,7 @@ pub enum RenderObject {
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum Direction {
-  Left, 
+  Left,
   Center,
   Right,
 }
@@ -74,15 +72,15 @@ pub struct CellAttribute {
   pub colkeepall: bool,
   pub rowkeepall: bool,
   pub bgcolor: LightNightColor,
-  pub table_bordercolor:LightNightColor,
-  pub bordercolor:LightNightColor,
-  pub color:LightNightColor,
-  pub table_bgcolor:LightNightColor,
-  pub row_color:LightNightColor,
-  pub col_color:LightNightColor,
-  pub row_bgcolor:LightNightColor,
-  pub col_bgcolor:LightNightColor,
-  pub table_color:LightNightColor
+  pub table_bordercolor: LightNightColor,
+  pub bordercolor: LightNightColor,
+  pub color: LightNightColor,
+  pub table_bgcolor: LightNightColor,
+  pub row_color: LightNightColor,
+  pub col_color: LightNightColor,
+  pub row_bgcolor: LightNightColor,
+  pub col_bgcolor: LightNightColor,
+  pub table_color: LightNightColor,
 }
 type LightNightColor = Option<(Option<String>, Option<String>)>;
 #[derive(Debug, PartialEq, Clone)]
@@ -136,25 +134,22 @@ pub struct Color {
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct Heading {
-  
   pub lvl: usize,
-  
+
   pub folded: bool,
-  
+
   pub content: Vec<Objects>,
 }
 #[derive(Debug, PartialEq, Clone)]
 
 pub struct QuoteLine {
-  
   pub lvl: usize,
-  
+
   pub content: Vec<Objects>,
 }
 #[derive(Debug, PartialEq, Clone)]
 
 pub struct Quote {
-  
   pub content: Vec<QuoteLine>,
 }
 #[derive(Debug, PartialEq, Clone)]
@@ -165,25 +160,22 @@ pub struct ListLine {
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum LinkType {
-  
   File,
-  
+
   Hyper,
-  
+
   Cat,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct Link {
-  
   pub to: String,
-  
+
   pub show: Vec<Objects>,
-  
+
   pub link_type: LinkType,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct List {
-  
   pub from: Option<usize>,
   pub listtype: ListType,
   pub content: Vec<ListLine>,
@@ -196,8 +188,7 @@ pub struct Syntax {
 #[derive(Debug, PartialEq, Clone)]
 
 pub enum Languages {
-  NotSupported, 
-                
+  NotSupported,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -208,7 +199,6 @@ pub struct NamuTriple {
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct NamumarkMacro {
-  
   pub macroname: String,
   pub macroarg: Option<String>,
   pub macrotype: NamuMacroType,
