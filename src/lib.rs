@@ -7,10 +7,12 @@
 //! ```rust
 //!use munarkma::structs::Compiler;
 //!fn main() {
-//!    let compiler = Compiler::from(\\\"Hello, Namumark!\\\".to_string());
-//!    println!(\\\"{:#?}\\\", compiler.array);
+//!    let compiler = Compiler::from(\\\\"Hello, Namumark!\\\\".to_string());
+//!    println!(\\\\"{:#?}\\\\", compiler.array);
 //!}
 //!```
+
+// use crate::structs::Compiler;
 
 
 
@@ -20,3 +22,8 @@ pub mod structs;
 mod tests;
 mod parse_third;
 mod parser_first;
+// fn main () {
+//     let mut compiler = Compiler::from("||<nopad><-19><nopad>adsf||".to_string());
+//     compiler.parse();
+//     println!("{:#?}", compiler.array);
+// }
