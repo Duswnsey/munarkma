@@ -26,13 +26,13 @@ pub struct Compiler {
   pub redirect: Option<String>,
   pub(crate) rollbacks: Option<usize>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub enum Objects {
   Char(char),
 
   RenderObject(RenderObject),
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub enum Expect {
   None,
@@ -57,7 +57,7 @@ pub enum Expect {
   Lower,
   Table,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub enum ListType {
   Hangul,
@@ -69,7 +69,7 @@ pub enum ListType {
   List,
   Arabia,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub enum NamuMacroType {
   YouTube,

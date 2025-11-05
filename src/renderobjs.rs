@@ -1,6 +1,6 @@
 use crate::structs::{Expect, ListType, NamuMacroType, Objects};
 #[derive(Debug, PartialEq, Clone)]
-
+#[derive(serde::Serialize, serde::Deserialize)]
 pub enum RenderObject {
   AddBefore(Vec<Objects>),
   Link(Link),
@@ -35,34 +35,34 @@ pub enum RenderObject {
   Table(Table),
   TableRow(Vec<Objects>),
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub enum Direction {
   Left,
   Center,
   Right,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Table {
   pub table_row: Vec<TableRow>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct TableRow {
   pub table_cell: Vec<TableCell>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct TableCell {
   pub attribute: CellAttribute,
   pub content: Vec<Objects>,
   pub allign: Option<Direction>,
   pub height_align: Option<Altitude>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub enum Altitude {
   High,
   Middle,
   Low,
 }
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct CellAttribute {
   pub nopad: bool,
   pub rowspan: Option<String>,
@@ -83,56 +83,56 @@ pub struct CellAttribute {
   pub table_color: LightNightColor,
 }
 type LightNightColor = Option<(Option<String>, Option<String>)>;
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Bold {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Itelic {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DelTidal {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DelBar {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct UnderLine {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Upper {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Lower {
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Reference {
   pub(crate) name: Option<String>,
   pub(crate) content: Option<Vec<Objects>>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Plus {
   pub(crate) how: u8,
   pub(crate) content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Minus {
   pub(crate) how: u8,
   pub(crate) content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Color {
   pub first: String,
   pub second: Option<String>,
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Heading {
   pub lvl: usize,
 
@@ -140,25 +140,25 @@ pub struct Heading {
 
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub struct QuoteLine {
   pub lvl: usize,
 
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub struct Quote {
   pub content: Vec<QuoteLine>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 
 pub struct ListLine {
   pub lvl: usize,
   pub content: Vec<Objects>,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub enum LinkType {
   File,
 
@@ -166,7 +166,7 @@ pub enum LinkType {
 
   Cat,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Link {
   pub to: String,
 
@@ -174,7 +174,7 @@ pub struct Link {
 
   pub link_type: LinkType,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct List {
   pub from: Option<usize>,
   pub listtype: ListType,
@@ -191,13 +191,13 @@ pub enum Languages {
   NotSupported,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct NamuTriple {
   pub attr: Option<String>,
   pub content: Option<Vec<Objects>>,
   pub triplename: String,
 }
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct NamumarkMacro {
   pub macroname: String,
   pub macroarg: Option<String>,
