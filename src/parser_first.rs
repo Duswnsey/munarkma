@@ -212,12 +212,17 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
         "nicovideo" => NamuMacroType::NicoVideo,
         "vimeo" => NamuMacroType::Vimeo,
         "navertv" => NamuMacroType::NaverTV,
-        "include" => NamuMacroType::Include,
+        "include" => {
+          compiler.include_list.push(macroarg.clone());
+          NamuMacroType::Include
+        }
         "age" => NamuMacroType::Age,
         "dday" => NamuMacroType::DDay,
         "pagecount" => NamuMacroType::PageCount,
         "ruby" => NamuMacroType::Ruby,
-        _ => {panic!()}
+        _ => {
+          panic!()
+        }
       };
       *result = RenderObject::NamumarkMacro(NamumarkMacro {
         macroname,
@@ -611,10 +616,9 @@ fn namumarker(
       if how <= 8 {
         compiler.index += how;
         compiler
-        .expected
-        .push((Expect::Quote(0), compiler.index, false));
+          .expected
+          .push((Expect::Quote(0), compiler.index, false));
         thisparsing = Some(parse_first(compiler, Expect::Quote(how)));
-
       } else {
         compiler.index += 1;
         namumarkresult.push(Objects::Char('>'));
@@ -739,7 +743,7 @@ fn namumarker(
                 } else {
                   panic!()
                 }
-              },
+              }
               Expect::Reference => {
                 if let RenderObject::Reference(rf) = result {
                   rf.content.as_mut().unwrap().extend(namumarkresult.clone());

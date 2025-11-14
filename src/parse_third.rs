@@ -509,7 +509,7 @@ fn a_whole_my_vec(close: &Expect, namumarkresult: &mut Vec<Objects>) -> Vec<Obje
       let mut rst = slices("\n||".to_string());
       rst.extend_from_slice(namumarkresult);
       rst
-    },
+    }
     Expect::None => namumarkresult.clone(),
     _ => {
       panic!("issue github: {:?}", close)
@@ -654,7 +654,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<-", idx) {
           idx += 2;
           if let Some(string) = detect_number(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             rollback += 3 + string.len();
             i.attribute.rowspan = Some(string);
           } else {
@@ -663,7 +663,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<v|", idx) {
           idx += 3;
           if let Some(string) = detect_number(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             rollback += 4 + string.len();
             i.attribute.rowspan = Some(string);
             i.height_align = Some(Altitude::Low);
@@ -673,7 +673,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<|", idx) {
           idx += 3;
           if let Some(string) = detect_number(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             rollback += 4 + string.len();
             i.attribute.rowspan = Some(string);
           } else {
@@ -682,7 +682,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<^|", idx) {
           idx += 3;
           if let Some(string) = detect_number(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             rollback += 4 + string.len();
             i.attribute.rowspan = Some(string);
             i.height_align = Some(Altitude::Low)
@@ -692,7 +692,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<width=", idx) {
           idx += 7;
           if let Some(string) = detect_number(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             rollback += 8 + string.len();
             i.attribute.width = Some(string);
           } else {
@@ -726,7 +726,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<tablebordercolor=", idx) {
           idx += 18;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             if sec_color.is_some() {
               let sec_color = sec_color.clone().unwrap();
               idx += sec_color.len();
@@ -742,7 +742,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<table bordercolor=", idx) {
           idx += 19;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             if sec_color.is_some() {
               let sec_color = sec_color.clone().unwrap();
               idx += sec_color.len();
@@ -758,7 +758,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<color=", idx) {
           idx += 7;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             if sec_color.is_some() {
               let sec_color = sec_color.clone().unwrap();
               idx += sec_color.len();
@@ -774,7 +774,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<tablecolor=", idx) {
           idx += 12;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
-            idx += string.len()+1;
+            idx += string.len() + 1;
             if sec_color.is_some() {
               let sec_color = sec_color.clone().unwrap();
               idx += sec_color.len();
@@ -822,7 +822,7 @@ fn get_table_cells(row: &Vec<Objects>) -> TableRow {
         } else if peak(&content, "<rowbgcolor=", idx) {
           idx += 12;
           if let Some((Some(string), sec_color)) = detact_color(content, idx) {
-            idx += string.len() +1;
+            idx += string.len() + 1;
             if sec_color.is_some() {
               let sec_color = sec_color.clone().unwrap();
               idx += sec_color.len();

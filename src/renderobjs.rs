@@ -1,6 +1,5 @@
 use crate::structs::{Expect, ListType, NamuMacroType, Objects};
-#[derive(Debug, PartialEq, Clone)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub enum RenderObject {
   AddBefore(Vec<Objects>),
   Link(Link),
@@ -10,9 +9,9 @@ pub enum RenderObject {
 
   NopNopNop,
 
-   EarlyParse((Expect, Vec<Objects>)),
+  EarlyParse((Expect, Vec<Objects>)),
 
-    EarlyParseRollBack(Expect),
+  EarlyParseRollBack(Expect),
   NamuTriple(NamuTriple),
   Literal(String),
   NamumarkMacro(NamumarkMacro),

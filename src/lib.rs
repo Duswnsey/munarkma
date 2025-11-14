@@ -14,14 +14,12 @@
 
 // use crate::structs::Compiler;
 
-
-
+mod parse_third;
+mod parser_first;
 pub mod renderobjs;
 pub mod structs;
 #[cfg(test)]
 mod tests;
-mod parse_third;
-mod parser_first;
 // fn main () {
 //     let mut compiler = Compiler::from("||<nopad><-19><nopad>adsf||".to_string());
 //     compiler.parse();

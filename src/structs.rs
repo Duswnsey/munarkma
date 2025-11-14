@@ -1,7 +1,4 @@
-use std::{
-  time::Instant,
-  vec,
-};
+use std::{time::Instant, vec};
 //참된 AI 사용법.
 static COLOR_REGEX: Lazy<Regex> = Lazy::new(|| {
   // 정규식은 한 번만 컴파일
@@ -12,7 +9,11 @@ static COLOR_REGEX: Lazy<Regex> = Lazy::new(|| {
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::{parse_third::parse_third, parser_first::parse_first, renderobjs::{Link, RenderObject}};
+use crate::{
+  parse_third::parse_third,
+  parser_first::parse_first,
+  renderobjs::{Link, RenderObject},
+};
 #[derive(Debug)]
 
 pub struct Compiler {
@@ -20,7 +21,8 @@ pub struct Compiler {
 
   pub array: Vec<Objects>,
   pub(crate) expected: Vec<(Expect, usize, bool)>,
-  pub link_list:Vec<Link>,
+  pub link_list: Vec<Link>,
+  pub include_list: Vec<String>,
   pub fixed_comments: Vec<String>,
 
   pub redirect: Option<String>,
@@ -95,7 +97,8 @@ impl Compiler {
 
   pub fn from(string: String) -> Compiler {
     let mut compiler = Compiler {
-      link_list:Vec::new(),
+      link_list: Vec::new(),
+      include_list: Vec::new(),
       index: 0,
       array: Vec::new(),
       expected: Vec::new(),
@@ -217,7 +220,7 @@ impl Compiler {
     let mut i = 0;
     let len = str_.len();
     loop {
-      if i  == len {
+      if i == len {
         break;
       }
       let Some(Objects::Char(cha)) = self.get(self.index + i) else {
