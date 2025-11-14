@@ -683,11 +683,8 @@ fn namumarker(
           if discriminant(close) == discriminant(&tuple.0) {
             match tuple.0 {
               Expect::Link => {
-                if let RenderObject::Link(link) = result {
-                  link.show.extend(tuple.1);
-                } else {
-                  panic!()
-                }
+                namumarkresult.extend(tuple.1);
+                last_dance(result, namumarkresult);
                 return false;
               }
               Expect::Color => {
@@ -1000,6 +997,9 @@ fn parsing_close(
       if *close == Expect::Link {
         compiler.expected.pop();
         last_dance(result, namumarkresult);
+        if let RenderObject::Link(lk) = result {
+          compiler.link_list.push(lk.clone())
+        }
         return Some(false);
       } else if let (true, what, how) = compiler.contains_for_parsing(|x| x == &Expect::Link) {
         if what {

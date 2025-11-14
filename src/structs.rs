@@ -12,7 +12,7 @@ static COLOR_REGEX: Lazy<Regex> = Lazy::new(|| {
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::{parse_third::parse_third, parser_first::parse_first, renderobjs::RenderObject};
+use crate::{parse_third::parse_third, parser_first::parse_first, renderobjs::{Link, RenderObject}};
 #[derive(Debug)]
 
 pub struct Compiler {
@@ -20,7 +20,7 @@ pub struct Compiler {
 
   pub array: Vec<Objects>,
   pub(crate) expected: Vec<(Expect, usize, bool)>,
-
+  pub link_list:Vec<Link>,
   pub fixed_comments: Vec<String>,
 
   pub redirect: Option<String>,
@@ -95,6 +95,7 @@ impl Compiler {
 
   pub fn from(string: String) -> Compiler {
     let mut compiler = Compiler {
+      link_list:Vec::new(),
       index: 0,
       array: Vec::new(),
       expected: Vec::new(),
