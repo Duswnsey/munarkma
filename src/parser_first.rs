@@ -23,9 +23,15 @@ pub(crate) fn parse_first(compiler: &mut Compiler, close: Expect) -> RenderObjec
   let mut close = close;
   //namumarkresult가 필요 없는 문법이라면(메크로 같은 마크업 사용이 불가한 문법) 리턴
   if !prepare_result(&close, &mut result, compiler) {
+    if let RenderObject::Link(lk) = result.clone() {
+      compiler.link_list.push(lk);
+    }
     return result;
   }
   while namumarker(compiler, &mut close, &mut namumarkresult, &mut result) {}
+  if let RenderObject::Link(lk) = result.clone() {
+    compiler.link_list.push(lk);
+  }
   result
 }
 fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Compiler) -> bool {
@@ -1016,9 +1022,6 @@ fn parsing_close(
       if *close == Expect::Link {
         compiler.expected.pop();
         last_dance(result, namumarkresult);
-        if let RenderObject::Link(lk) = result {
-          compiler.link_list.push(lk.clone())
-        }
         return Some(false);
       } else if let (true, what, how) = compiler.contains_for_parsing(|x| x == &Expect::Link) {
         if what {
