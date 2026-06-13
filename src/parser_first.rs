@@ -13,11 +13,15 @@ use crate::{
     TABLEOFCONTENTS, TRIPLE_CLOSE, TRIPLE_OPEN, VIMEO, WIKI, YOUTUBE, 깎쭈, 뀨, 몪차,
   },
 };
-
+//일종의 롤백 가능한 제귀하강적인 이상한 구조를 가졌는데 스택오버 문제만 없으면 속도는 상당히 빨라서 놀람 이게 컴파일 언언가
 pub(crate) fn parse_first(compiler: &mut Compiler, close: Expect) -> RenderObject {
+  //{{{#!마냥 안에 마크업이 들어갈 수 있는 건 그 마크업을 namumarkresult에 저장해둠}}}
   let mut namumarkresult: Vec<Objects> = Vec::new();
+  //namumarkresult가 나중에 result에 알맞은 필드에 쑤셔넣어짐.
+  // if let Some(rendobj) = thisparsing {... 구체적인 코드는 여기 참고
   let mut result: RenderObject = RenderObject::NopNopNop;
   let mut close = close;
+  //namumarkresult가 필요 없는 문법이라면(메크로 같은 마크업 사용이 불가한 문법) 리턴
   if !prepare_result(&close, &mut result, compiler) {
     return result;
   }
@@ -29,8 +33,9 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
     Expect::None => *result = RenderObject::NopNopNop,
     Expect::Link => {
       let index = compiler.index;
-      let mut to = String::new();
+      let mut to: String = String::with_capacity(0);
       loop {
+        //println!("{:?}", compiler.noparse_flags);
         if let Some(Objects::Char(ch)) = compiler.get(compiler.index) {
           let ch = ch.to_owned();
           if compiler.peak(&LINK_CLOSE) {
@@ -42,7 +47,9 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
               link_type: LinkType::Hyper,
             });
             let what: Vec<Objects> = Vec::new();
+            //이건 뭔 마법의 함수임? : 아마 링크 타입 정하는거일껄
             last_dance(result, &what);
+            // 파이프라인이 없어서 마크업을 삽입할 수 없기 때문에 false를 반환하여 while namumarker(compiler, &mut close, &mut namumarkresult, &mut result) {}를 무시한다
             return false;
           }
           if ch == '|' {
@@ -52,9 +59,13 @@ fn prepare_result(close: &Expect, result: &mut RenderObject, compiler: &mut Comp
           to.push(ch);
           compiler.index += 1;
         } else {
+          //[[가 닫히지 않아서
           compiler.index = index;
+          //expected token list에서 제거
           compiler.expected.pop();
+          //이게 뭐하는거일까
           *result = compiler.get_before_earlyparse(slices("[[".to_string()));
+          //println!("a");
           return false;
         }
       }
@@ -320,9 +331,12 @@ fn namumarker(
       && let Some((_, how, _)) = compiler.expected.get(compiler.rollbacks.unwrap())
       && how == &compiler.index
     {
+      //println!("a{:?}", expect);
       compiler.index += 1;
-      compiler.expected.pop();
+
       namumarkresult.push(Objects::Char(ch));
+
+      compiler.expected.remove(0);
       return true;
     }
     let ch = ch.to_owned();
@@ -652,6 +666,7 @@ fn namumarker(
     if let Some(rendobj) = thisparsing {
       match rendobj {
         RenderObject::LastRollBack => {
+          //println!("aabb");
           if Expect::None == *close {
             compiler.index = compiler.expected.first().unwrap().1;
             return true;
@@ -1215,6 +1230,7 @@ fn parsing_close(
   }
   None
 }
+//
 fn last_dance(result: &mut RenderObject, namumarkresult: &Vec<Objects>) {
   match result {
     RenderObject::Link(link) => {
